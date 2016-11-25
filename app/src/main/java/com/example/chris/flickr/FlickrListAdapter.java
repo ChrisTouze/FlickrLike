@@ -27,6 +27,10 @@ public class FlickrListAdapter extends BaseAdapter {
 
     }
 
+    public void setList(List<Picture> list) {
+        this.list = list;
+    }
+
     @Override
     public int getCount() {
         return list.size();

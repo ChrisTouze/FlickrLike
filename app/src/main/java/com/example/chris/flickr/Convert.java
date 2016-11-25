@@ -16,6 +16,7 @@ public class Convert {
         if (flickrResponseDto.getStat().equals("ok")){
             for (PhotoDto p:flickrResponseDto.getPhotos().getPhoto()) {
                 pictureList.add(new Picture(p.getTitle(),generateUrl(p),generateThumbUrl(p)));
+
             }
         }
         return pictureList;

@@ -49,7 +49,7 @@ public class Picture implements Serializable {
         this.title = title;
     }
 
-    public Picture(String url, String title) {
+    public Picture(String title,String url) {
         this.url = url;
         this.title = title;
     }
