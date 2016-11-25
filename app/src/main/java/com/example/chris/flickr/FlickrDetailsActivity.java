@@ -23,6 +23,6 @@ public class FlickrDetailsActivity extends AppCompatActivity {
         picture = (Picture) getIntent().getSerializableExtra("picture");
         titleTextView.setText(picture.getTitle());
         urlTextView.setText(picture.getUrl());
-        Picasso.with(this).load(picture.getUrl()).fit().centerCrop().into(pictureView);
+        Picasso.with(this).load(picture.getUrl()).fit().centerInside().into(pictureView);
     }
 }
