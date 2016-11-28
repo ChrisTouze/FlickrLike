@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                  InputMethodManager manager=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                manager.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
+                manager.toggleSoftInput(0,0);
                 if (bound) {
                     adapter.setList(flickrService.generateList());
                     adapter.notifyDataSetChanged();
