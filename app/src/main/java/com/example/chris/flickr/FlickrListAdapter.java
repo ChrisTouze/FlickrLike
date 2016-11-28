@@ -18,8 +18,8 @@ import java.util.List;
  */
 
 public class FlickrListAdapter extends BaseAdapter {
-    Context context;
-    List<Picture> list;
+    private Context context;
+    private List<Picture> list;
 
     public FlickrListAdapter(Context context, List list) {
         this.context = context;

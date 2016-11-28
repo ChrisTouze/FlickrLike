@@ -20,7 +20,7 @@
         <activity android:name=".FlickrDetailsActivity" />
 
         <service
-            android:name=".MyService"
+            android:name=".FlickrService"
             android:enabled="true"
             android:exported="true"></service>
     </application>

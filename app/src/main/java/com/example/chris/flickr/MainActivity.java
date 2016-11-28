@@ -62,22 +62,20 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Intent intent = new Intent(MainActivity.this, FlickrDetailsActivity.class);
                 intent.putExtra("picture", listPicture.get(i));
-
                 startActivity(intent);
-
             }
         });
 
         launchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String queryMessage = "Votre recherche : "+ query.getText().toString();
-                Toast.makeText(MainActivity.this,queryMessage,Toast.LENGTH_SHORT).show();
-                InputMethodManager manager=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                 InputMethodManager manager=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
                 manager.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
                 if (bound) {
                     adapter.setList(flickrService.generateList());
                     adapter.notifyDataSetChanged();
+                    String queryMessage = "Votre recherche : "+ query.getText().toString();
+                    Toast.makeText(MainActivity.this,queryMessage,Toast.LENGTH_SHORT).show();
                 }
 
             }
