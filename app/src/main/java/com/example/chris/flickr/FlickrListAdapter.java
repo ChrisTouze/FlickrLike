@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,12 +20,16 @@ import java.util.List;
 
 public class FlickrListAdapter extends BaseAdapter {
     private Context context;
-    private List<Picture> list;
+    private List<Picture> list = new ArrayList<>();
 
     public FlickrListAdapter(Context context, List list) {
         this.context = context;
         this.list = list;
 
+    }
+
+    public FlickrListAdapter(Context context) {
+        this.context = context;
     }
 
     public void setList(List<Picture> list) {
@@ -37,7 +42,7 @@ public class FlickrListAdapter extends BaseAdapter {
     }
 
     @Override
-    public Object getItem(int i) {
+    public Picture getItem(int i) {
         return list.get(i);
     }
 
