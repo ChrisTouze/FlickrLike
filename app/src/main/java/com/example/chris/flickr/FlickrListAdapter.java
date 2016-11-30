@@ -1,7 +1,9 @@
 package com.example.chris.flickr;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.design.widget.FloatingActionButton;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +23,9 @@ import java.util.List;
 public class FlickrListAdapter extends BaseAdapter {
     private Context context;
     private List<Picture> list = new ArrayList<>();
+
+    private SharedPreferences settings;
+
 
     public FlickrListAdapter(Context context, List list) {
         this.context = context;
@@ -52,7 +57,7 @@ public class FlickrListAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(int i, View convertView, ViewGroup viewGroup) {
+    public View getView(int i, View convertView, final ViewGroup viewGroup) {
         final int newI = i;
         if (convertView == null) {
             convertView = LayoutInflater
@@ -81,12 +86,21 @@ public class FlickrListAdapter extends BaseAdapter {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                settings = context.getSharedPreferences(MainActivity.FLICKR_SETTINGS,Context.MODE_PRIVATE);
+                String myActivity = settings.getString(MainActivity.ACTIVITY_VIEW_TYPE,"s");
+                if (myActivity.equals("h")){
+                    PictureDbManager pictureDbManager = new PictureDbManager(context);
+
+                    pictureDbManager.delete(list.get(newI));
+                }
                 list.remove(newI);
+
                 notifyDataSetChanged();
 
             }
         });
 
+        Log.e("TEST",""+list.get(i).getId());
 
         return convertView;
     }

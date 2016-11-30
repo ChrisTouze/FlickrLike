@@ -61,12 +61,6 @@ public class FlickrService extends Service {
 
 
                 List<Picture> pictureList=Convert.convert(response.body());
-
-                /*for (Picture p:pictureList) {
-                    Log.e("TEST",p.getUrl());
-
-                }
-                Log.e("TEST",response.body().getStat());*/
                 flickrResponseListener.onPhotosReceived(pictureList);
 
 

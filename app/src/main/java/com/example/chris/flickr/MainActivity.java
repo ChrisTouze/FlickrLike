@@ -30,14 +30,17 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements FlickrResponseListener,AdapterView.OnItemSelectedListener {
 
+    public static final String ACTIVITY_VIEW_TYPE = "activityViewType";
+    public static final String FLICKR_SETTINGS = "FLICKR_SETTINGS";
     private FlickrService flickrService;
     boolean bound = false;
     FlickrListAdapter adapter;
 
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
+    private PictureDbManager pictureDbManager;
 
-    SharedPreferences settings;
+    private SharedPreferences settings;
     String nbResultsByPage;
 
 
@@ -61,18 +64,125 @@ public class MainActivity extends AppCompatActivity implements FlickrResponseLis
         }
     }
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_list);
 
-
-        settings = getPreferences(0);
+        settings = getSharedPreferences(FLICKR_SETTINGS,MODE_PRIVATE);
         nbResultsByPage = settings.getString("nbResultsByPage", "5");
+        final String activityType = settings.getString(ACTIVITY_VIEW_TYPE,"s");
+
+        pictureDbManager = new PictureDbManager(this);
 
         final LinearLayout searchLayout = (LinearLayout)findViewById(R.id.search_zone);
+        final EditText editText = (EditText) findViewById(R.id.flickr_list_input);
+        final ListView listView = (ListView) findViewById(R.id.flickr_list);
+        Button drawerButtonSearch = (Button)findViewById(R.id.drawer_search_button);
+        Button drawerButtonHist = (Button)findViewById(R.id.drawer_historic_button);
+        drawerInit();
+
+        spinnerInit();
 
 
+
+
+
+        // Drawer search button :
+        drawerButtonSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                searchLayout.setVisibility(View.VISIBLE);
+                SharedPreferences settings = getSharedPreferences(FLICKR_SETTINGS,MODE_PRIVATE);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString(ACTIVITY_VIEW_TYPE, "s");
+                editor.commit();
+
+             }
+        });
+
+        drawerButtonHist.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                searchLayout.setVisibility(View.GONE);
+                SharedPreferences settings = getSharedPreferences(FLICKR_SETTINGS,MODE_PRIVATE);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString(ACTIVITY_VIEW_TYPE, "h");
+                editor.commit();
+                if (adapter!=null){
+                    adapter.setList(pictureDbManager.getAll());
+                    adapter.notifyDataSetChanged();
+                }
+
+            }
+        });
+
+
+
+        Button launchButton = (Button)findViewById(R.id.flickr_list_button);
+        launchButton.requestFocus();
+
+     /*   if(getCurrentFocus()!=null) {
+            InputMethodManager manager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            //manager.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
+            manager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+        }*/
+
+        adapter = new FlickrListAdapter(this);
+
+        listView.setAdapter(adapter);
+
+        if (activityType.equals("s")) {
+            drawerButtonSearch.performClick();
+        } else {
+            drawerButtonHist.performClick();
+            if (adapter!=null){
+                adapter.setList(pictureDbManager.getAll());
+            }
+        }
+
+
+        adapter.notifyDataSetChanged();
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                pictureDbManager.save(adapter.getItem(i));
+                Intent intent = new Intent(MainActivity.this, FlickrDetailsActivity.class);
+                intent.putExtra("picture", adapter.getItem(i));
+
+                startActivity(intent);
+            }
+        });
+
+        launchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+
+                if (bound) {
+
+                        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+
+                    String myQuery = editText.getText().toString();
+                    myQuery.trim();
+                    myQuery.replace(' ','+');
+                    flickrService.getPhotos(myQuery,nbResultsByPage);
+                    String queryMessage = "Votre recherche : "+ editText.getText().toString();
+                    Toast.makeText(MainActivity.this,queryMessage,Toast.LENGTH_SHORT).show();
+                }
+
+            }
+        });
+
+
+    }
+
+    private void drawerInit() {
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawerToggle = new ActionBarDrawerToggle(
                 this,                  /* host Activity */
@@ -99,78 +209,16 @@ public class MainActivity extends AppCompatActivity implements FlickrResponseLis
         drawerLayout.setDrawerListener(drawerToggle);
         getSupportActionBar().setDefaultDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
 
-        //SPINNER
+    private void spinnerInit() {
         Spinner spinner = (Spinner) findViewById(R.id.nb_results);
         ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(this,
                 R.array.nbresults_array, android.R.layout.simple_spinner_item);
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-         spinner.setOnItemSelectedListener(this);
+        spinner.setOnItemSelectedListener(this);
         spinner.setAdapter(spinnerAdapter);
         spinner.setSelection(spinnerAdapter.getPosition(nbResultsByPage));
-
-        final EditText editText = (EditText) findViewById(R.id.flickr_list_input);
-
-        final ListView listView = (ListView) findViewById(R.id.flickr_list);
-
-        // Drawer search button :
-        Button drawerButtonSearch = (Button)findViewById(R.id.drawer_search_button);
-        drawerButtonSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                searchLayout.setVisibility(View.VISIBLE);
-             }
-        });
-
-        Button drawerButtonHist = (Button)findViewById(R.id.drawer_historic_button);
-        drawerButtonHist.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                searchLayout.setVisibility(View.GONE);
-               }
-        });
-
-
-
-        Button launchButton = (Button)findViewById(R.id.flickr_list_button);
-
-
-        adapter = new FlickrListAdapter(this);
-
-        listView.setAdapter(adapter);
-
-        adapter.notifyDataSetChanged();
-
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent intent = new Intent(MainActivity.this, FlickrDetailsActivity.class);
-                intent.putExtra("picture", adapter.getItem(i));
-                startActivity(intent);
-            }
-        });
-
-        launchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                 InputMethodManager manager=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                manager.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
-                if (bound) {
-
-                    String myQuery = editText.getText().toString();
-                    myQuery.trim();
-                    myQuery.replace(' ','+');
-                    flickrService.getPhotos(myQuery,nbResultsByPage);
-                    //adapter.setList(flickrService.getPhotos("a remplacer"));
-                    //
-                    String queryMessage = "Votre recherche : "+ editText.getText().toString();
-                    Toast.makeText(MainActivity.this,queryMessage,Toast.LENGTH_SHORT).show();
-                }
-
-            }
-        });
-
-
     }
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -227,7 +275,7 @@ public class MainActivity extends AppCompatActivity implements FlickrResponseLis
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
         String nbResults = adapterView.getItemAtPosition(i).toString();
 
-        SharedPreferences settings = getPreferences(0);
+        SharedPreferences settings = getSharedPreferences(FLICKR_SETTINGS,MODE_PRIVATE);
         SharedPreferences.Editor editor = settings.edit();
         editor.putString("nbResultsByPage", nbResults);
         editor.commit();
